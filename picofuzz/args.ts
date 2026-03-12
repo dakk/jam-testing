@@ -7,6 +7,7 @@ export type Args = {
   flavour: "tiny" | "full";
   mode: "default" | "jam-traces";
   output?: string;
+  capture?: string;
   ignore: string[];
 };
 
@@ -17,13 +18,14 @@ export function parseArgs(): Args {
       f: "flavour",
       r: "repeat",
       m: "mode",
+      c: "capture",
       h: "help",
     },
     default: {
       repeat: 1,
       mode: "default",
     },
-    string: ["directory", "socket", "mode", "ignore"],
+    string: ["directory", "socket", "mode", "ignore", "capture"],
   });
 
   if (argv.help) {
@@ -34,6 +36,7 @@ export function parseArgs(): Args {
     console.log("  -m, --mode    <mode>      Processing mode: default | jam-traces (default: default)");
     console.log("  -r, --repeat  <count>     Number of repetitions (default: 1)");
     console.log("  -s, --stats   <file>      Append aggregated stats to a CSV file");
+    console.log("  -c, --capture <dir>       Capture request/response pairs as minifuzz trace files");
     console.log("  --ignore      <file>      Ignore specific .bin files (can be repeated)");
     console.log("  -h, --help                Show help");
     console.log("");
@@ -49,6 +52,7 @@ export function parseArgs(): Args {
   const flavour = argv.flavour ?? "tiny";
   const mode = argv.mode ?? "default";
   const output = argv.stats;
+  const capture = argv.capture;
 
   if (!directory || !socket) {
     console.error("Error: directory and socket are required");
@@ -85,6 +89,7 @@ export function parseArgs(): Args {
     flavour,
     mode,
     output,
+    capture,
     ignore,
   };
 }

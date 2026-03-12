@@ -7,6 +7,7 @@ import * as fuzz_proto from "@typeberry/lib/fuzz-proto";
 import { tryAsU8, tryAsU32 } from "@typeberry/lib/numbers";
 import { CURRENT_VERSION } from "@typeberry/lib/utils";
 import { parseArgs } from "./args.js";
+import { Capture } from "./capture.js";
 import { getBinFiles, processFile } from "./files.js";
 import packageJson from "./package.json" with { type: "json" };
 import { Socket } from "./socket.js";
@@ -28,19 +29,20 @@ async function main() {
   const args = parseArgs();
   const socket = await Socket.connect(args.socket);
   const spec = args.flavour === "tiny" ? tinyChainSpec : fullChainSpec;
+  const capture = args.capture ? new Capture(args.capture) : null;
 
   try {
     const binFiles = await getBinFiles(args.directory, args.ignore);
     console.log(`Found ${binFiles.length} .bin files`);
 
-    const peerName = await sendHandshake(spec, socket);
+    const peerName = await sendHandshake(spec, socket, capture);
 
     const stats = Stats.new(peerName);
 
     if (args.mode === "jam-traces") {
-      await handleJamTracesMode(spec, socket, stats, binFiles, args.repeat);
+      await handleJamTracesMode(spec, socket, stats, binFiles, args.repeat, capture);
     } else {
-      await handleDefaultMode(spec, socket, stats, binFiles, args.repeat);
+      await handleDefaultMode(spec, socket, stats, binFiles, args.repeat, capture);
     }
 
     console.log("All files processed successfully");
@@ -62,11 +64,18 @@ function decodeMessage(spec: ChainSpec, data: Buffer): fuzz_proto.v1.MessageData
   return Decoder.decodeObject(messageCodec, arr, spec);
 }
 
-async function handleDefaultMode(spec: ChainSpec, socket: Socket, stats: Stats, binFiles: string[], repeat: number) {
+async function handleDefaultMode(
+  spec: ChainSpec,
+  socket: Socket,
+  stats: Stats,
+  binFiles: string[],
+  repeat: number,
+  capture: Capture | null,
+) {
   for (let i = 0; i < repeat; i++) {
     for (const file of binFiles) {
       const success = await processFile(file, (filePath, fileData) => {
-        return handleRequest(spec, socket, stats, filePath, fileData);
+        return handleRequest(spec, socket, stats, filePath, fileData, capture);
       });
 
       if (!success) {
@@ -77,7 +86,14 @@ async function handleDefaultMode(spec: ChainSpec, socket: Socket, stats: Stats, 
   }
 }
 
-async function handleJamTracesMode(spec: ChainSpec, socket: Socket, stats: Stats, binFiles: string[], repeat: number) {
+async function handleJamTracesMode(
+  spec: ChainSpec,
+  socket: Socket,
+  stats: Stats,
+  binFiles: string[],
+  repeat: number,
+  capture: Capture | null,
+) {
   for (let i = 0; i < repeat; i++) {
     for (let fileIndex = 0; fileIndex < binFiles.length; fileIndex++) {
       const file = binFiles[fileIndex];
@@ -86,12 +102,12 @@ async function handleJamTracesMode(spec: ChainSpec, socket: Socket, stats: Stats
       const success = await processFile(file, async (filePath, fileData) => {
         const parsed = parseStfVector(new Uint8Array(fileData), spec);
         if (isFirstFile) {
-          const init = await handleJamTracesRequest(spec, socket, stats, filePath, parsed.init);
-          const block = await handleJamTracesRequest(spec, socket, stats, filePath, parsed.block);
+          const init = await handleJamTracesRequest(spec, socket, stats, filePath, parsed.init, capture);
+          const block = await handleJamTracesRequest(spec, socket, stats, filePath, parsed.block, capture);
           return init && block;
         }
 
-        return handleJamTracesRequest(spec, socket, stats, filePath, parsed.block);
+        return handleJamTracesRequest(spec, socket, stats, filePath, parsed.block, capture);
       });
 
       if (!success) {
@@ -102,7 +118,7 @@ async function handleJamTracesMode(spec: ChainSpec, socket: Socket, stats: Stats
   }
 }
 
-async function sendHandshake(spec: ChainSpec, socket: Socket) {
+async function sendHandshake(spec: ChainSpec, socket: Socket, capture: Capture | null) {
   const msgIn: fuzz_proto.v1.MessageData = {
     type: MessageType.PeerInfo,
     value: PeerInfo.create({
@@ -119,6 +135,9 @@ async function sendHandshake(spec: ChainSpec, socket: Socket) {
   if (msgOut.type !== MessageType.PeerInfo) {
     throw new Error(`Invalid handshake response: ${MessageType[msgOut.type]}`);
   }
+
+  capture?.save(msgIn.type, encoded.raw, msgOut.type, response);
+
   const peer = msgOut.value;
   const peerName = `${peer.name}@${peer.appVersion.major}.${peer.appVersion.minor}.${peer.appVersion.patch}`;
   console.info(`[${peerName}] <-> Handshake successful ${peer}`);
@@ -126,7 +145,14 @@ async function sendHandshake(spec: ChainSpec, socket: Socket) {
   return peerName;
 }
 
-async function handleRequest(spec: ChainSpec, socket: Socket, stats: Stats, filePath: string, fileData: Buffer) {
+async function handleRequest(
+  spec: ChainSpec,
+  socket: Socket,
+  stats: Stats,
+  filePath: string,
+  fileData: Buffer,
+  capture: Capture | null,
+) {
   const msgIn = decodeMessage(spec, fileData);
   const valueTruncated = `${msgIn.value}`.substring(0, 4096);
   console.log(`[node] <-- ${MessageType[msgIn.type]} ${valueTruncated}`);
@@ -139,9 +165,12 @@ async function handleRequest(spec: ChainSpec, socket: Socket, stats: Stats, file
   const msgOut = decodeMessage(spec, response);
   console.log(`[node] --> ${MessageType[msgOut.type]} ${msgOut.value}, took: ${tookNs}`);
 
+  capture?.save(msgIn.type, fileData, msgOut.type, response);
+
   if (msgOut.type === MessageType.Error) {
     console.error(`[${filePath}] Target returned error: ${msgOut.value}`);
-    return false;
+    // In capture mode, continue past errors to record them as expected responses
+    return capture !== null;
   }
 
   return true;
@@ -153,6 +182,7 @@ async function handleJamTracesRequest(
   stats: Stats,
   filePath: string,
   msgIn: fuzz_proto.v1.MessageData,
+  capture: Capture | null,
 ) {
   const encoded = Encoder.encodeObject(messageCodec, msgIn, spec);
   console.log(`[node] <-- ${MessageType[msgIn.type]} ${msgIn.value}`);
@@ -165,9 +195,12 @@ async function handleJamTracesRequest(
   const msgOut = decodeMessage(spec, response);
   console.log(`[node] --> ${MessageType[msgOut.type]} ${msgOut.value}, took: ${tookNs}`);
 
+  capture?.save(msgIn.type, encoded.raw, msgOut.type, response);
+
   if (msgOut.type === MessageType.Error) {
     console.error(`[${filePath}] Target returned error: ${msgOut.value}`);
-    return false;
+    // In capture mode, continue past errors to record them as expected responses
+    return capture !== null;
   }
 
   return true;
