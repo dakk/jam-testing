@@ -83,10 +83,14 @@ jobs:
           node -e "
             const fs = require('fs');
             fs.writeFileSync('src/data/source-info.json', JSON.stringify({
-              commit: '${{ github.sha }}',
-              date: new Date().toISOString(),
-              message: 'Picofuzz results from jam-testing',
-              author: 'GitHub Actions'
+              lastUpdated: new Date().toISOString(),
+              source: {
+                commitHash: '${{ github.sha }}',
+                commitDate: new Date().toISOString(),
+                commitMessage: 'Picofuzz results from jam-testing',
+                commitAuthor: 'GitHub Actions',
+                sourceUrl: 'https://github.com/${{ github.repository }}/commit/${{ github.sha }}'
+              }
             }, null, 2));
           "
 
