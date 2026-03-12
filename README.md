@@ -1,9 +1,17 @@
 # jam-testing
 
-Performance and smoke testing suite for JAM implementations.
-Each team provides a Docker image, and the suite runs [minifuzz](./minifuzz/)
-conformance examples and [picofuzz](./picofuzz/) traces against it,
-collecting per-trace timing statistics.
+Smoke testing and performance measurement suite for JAM implementations.
+Each team provides a Docker image that speaks the
+[JAM Fuzz protocol](https://github.com/davxy/jam-conformance/tree/main/fuzz-proto),
+and the suite runs two stages against it:
+
+- **[Minifuzz](./minifuzz/)** — replays pre-constructed protocol examples and
+  validates that the implementation handles the bare minimum features correctly
+  and returns expected responses. Acts as a gate: if minifuzz fails, performance
+  tests are skipped.
+- **[Picofuzz](./picofuzz/)** — sends STF traces at the implementation without
+  checking responses. Its only purpose is to measure block import performance
+  (timings are displayed on the [dashboard](#dashboard)).
 
 ## Minifuzz + Performance
 
@@ -24,23 +32,25 @@ collecting per-trace timing statistics.
 1. A **reusable GitHub Actions workflow** pulls your Docker image, starts it
    with a shared Unix socket volume, and runs tests against it.
 2. **Minifuzz** runs first as a gate — it replays pre-constructed fuzz protocol
-   examples (forks and no_forks) and validates responses. If minifuzz fails,
-   picofuzz is skipped entirely.
-3. **Picofuzz** runs the full test suites with detailed timing measurements.
+   examples (forks and no_forks) and validates that the implementation returns
+   correct responses. If minifuzz fails, picofuzz is skipped entirely.
+3. **Picofuzz** sends STF traces to the implementation and collects per-trace
+   timing statistics (it does not verify responses).
 4. Each team has its own workflow file (e.g. `typeberry-picofuzz.yml`) that
    passes team-specific config (image, command, env vars, memory) to the
    reusable workflow.
-5. Tests run on a self-hosted runner. Results (CSV with per-trace timing
-   percentiles) are uploaded as artifacts.
+5. Tests run on a self-hosted runner. Timing results (CSV with per-trace
+   percentiles) are uploaded as artifacts and displayed on the dashboard.
 
-### Test suites
+### Picofuzz suites
 
-| Suite | Data source | Description |
-|---|---|---|
-| `fallback` | `picofuzz-stf-data` | Fallback STF traces |
-| `safrole` | `picofuzz-stf-data` | Safrole STF traces |
-| `storage` | `picofuzz-stf-data` | Storage STF traces |
-| `storage_light` | `picofuzz-stf-data` | Lightweight storage traces |
+| Suite | Description |
+|---|---|
+| `fallback` | Fallback STF traces |
+| `safrole` | Safrole STF traces |
+| `storage` | Storage STF traces |
+| `storage_light` | Lightweight storage traces |
+
 ### Readiness detection
 
 The suite needs to know when your implementation is ready to accept
@@ -54,8 +64,8 @@ connections on the Unix socket. Two modes are supported:
 ## Adding your team
 
 1. **Provide a Docker image** that accepts a Unix socket path and speaks the
-   [picofuzz fuzz protocol](./picofuzz/). The image must be publicly pullable
-   (or accessible to the runner).
+   [JAM Fuzz protocol](https://github.com/davxy/jam-conformance/tree/main/fuzz-proto).
+   The image must be publicly pullable (or accessible to the runner).
 
 2. **Create a workflow file** at `.github/workflows/<team>-picofuzz.yml`:
 
@@ -100,7 +110,7 @@ connections on the Unix socket. Two modes are supported:
 | `readiness_pattern` | no | `""` | Regex matched against stdout to detect readiness |
 | `timeout_minutes` | no | `10` | Per-suite timeout |
 | `max_wait_minutes` | no | `120` | Max queuing time before the job self-cancels |
-| `test_suites` | no | all five | JSON array of suite names to run |
+| `test_suites` | no | all four | JSON array of picofuzz suite names to run |
 
 ## Running locally
 
@@ -155,7 +165,7 @@ tests/
     *.test.ts                 # Per-suite test files
 teams/<team>/                 # Team-specific scripts & data
 picofuzz-stf-data/            # Git submodule: STF test traces
-picofuzz-conformance-data/    # Git submodule: conformance traces
+picofuzz-conformance-data/    # Git submodule: jam-conformance (minifuzz examples)
 ```
 
 ## License
