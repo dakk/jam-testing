@@ -12,7 +12,10 @@ export function runMinifuzzTest(
 ) {
   const config = getTargetConfig();
 
-  const effectiveConfig: TargetConfig = options.highMemory ? { ...config, memory: "2048m" } : config;
+  const effectiveConfig: TargetConfig =
+    options.highMemory && Number.parseInt(config.memory) < 2048
+      ? { ...config, memory: "2048m" }
+      : config;
 
   describe(`[minifuzz] ${config.name} - ${name}`, { timeout }, () => {
     let targetProc: ExternalProcess | null = null;
