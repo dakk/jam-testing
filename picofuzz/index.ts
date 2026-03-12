@@ -139,6 +139,11 @@ async function handleRequest(spec: ChainSpec, socket: Socket, stats: Stats, file
   const msgOut = decodeMessage(spec, response);
   console.log(`[node] --> ${MessageType[msgOut.type]} ${msgOut.value}, took: ${tookNs}`);
 
+  if (msgOut.type === MessageType.Error) {
+    console.error(`[${filePath}] Target returned error: ${msgOut.value}`);
+    return false;
+  }
+
   return true;
 }
 
@@ -159,6 +164,11 @@ async function handleJamTracesRequest(
 
   const msgOut = decodeMessage(spec, response);
   console.log(`[node] --> ${MessageType[msgOut.type]} ${msgOut.value}, took: ${tookNs}`);
+
+  if (msgOut.type === MessageType.Error) {
+    console.error(`[${filePath}] Target returned error: ${msgOut.value}`);
+    return false;
+  }
 
   return true;
 }

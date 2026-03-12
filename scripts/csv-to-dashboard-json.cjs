@@ -36,6 +36,9 @@ function csvRowToJson(row, targetName) {
   const versionMatch = row.peer.match(/@(\d+\.\d+\.\d+)$/);
   const appVersion = versionMatch ? versionMatch[1].split('.').map(Number) : [0, 1, 0];
 
+  // CSV values are in nanoseconds, dashboard expects milliseconds
+  const nsToMs = (ns) => Math.round(parseFloat(ns) / 1_000_000 * 100) / 100;
+
   return {
     info: {
       name: targetName,
@@ -46,14 +49,14 @@ function csvRowToJson(row, targetName) {
       steps: parseInt(row.count, 10),
       imported: parseInt(row.count, 10),
       import_max_step: 0,
-      import_min: parseFloat(row.min),
-      import_max: parseFloat(row.max),
-      import_mean: parseFloat(row.mean),
-      import_p50: parseFloat(row.p50),
-      import_p75: parseFloat(row.p75),
-      import_p90: parseFloat(row.p90),
-      import_p99: parseFloat(row.p99),
-      import_std_dev: parseFloat(row.standardDeviation),
+      import_min: nsToMs(row.min),
+      import_max: nsToMs(row.max),
+      import_mean: nsToMs(row.mean),
+      import_p50: nsToMs(row.p50),
+      import_p75: nsToMs(row.p75),
+      import_p90: nsToMs(row.p90),
+      import_p99: nsToMs(row.p99),
+      import_std_dev: nsToMs(row.standardDeviation),
     },
   };
 }
