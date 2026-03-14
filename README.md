@@ -28,6 +28,7 @@ and the suite runs two stages against it:
 | pbnjam | [![Performance: pbnjam](https://github.com/FluffyLabs/jam-testing/actions/workflows/pbnjam-performance.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/pbnjam-performance.yml) |
 | javajam | [![Performance: javajam](https://github.com/FluffyLabs/jam-testing/actions/workflows/javajam-performance.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/javajam-performance.yml) |
 | jamforge | [![Performance: jamforge](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamforge-performance.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamforge-performance.yml) |
+| jotl | [![Performance: jotl](https://github.com/FluffyLabs/jam-testing/actions/workflows/jotl-performance.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jotl-performance.yml) |
 | jamzilla | [![Performance: jamzilla](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamzilla-performance.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamzilla-performance.yml) |
 | jamzilla-int | [![Performance: jamzilla-int](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamzilla-int-performance.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamzilla-int-performance.yml) |
 
