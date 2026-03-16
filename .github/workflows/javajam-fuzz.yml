@@ -1,16 +1,14 @@
-name: "Performance: javajam"
+name: "Fuzz: javajam"
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
   workflow_dispatch:
   pull_request:
     paths:
-      - '.github/workflows/javajam-performance.yml'
+      - '.github/workflows/javajam-fuzz.yml'
 
 jobs:
-  test:
-    uses: ./.github/workflows/reusable-picofuzz.yml
+  demo:
+    uses: ./.github/workflows/demo-source.yml
     with:
       target_name: javajam
       docker_image: 'ghcr.io/methodfive/javajam:latest-amd64'

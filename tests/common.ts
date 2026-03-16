@@ -4,6 +4,16 @@ import { ExternalProcess } from "./external-process.js";
 const SOCKET_PATH = "/shared/jam_target.sock";
 const SHARED_VOLUME = "jam-ipc-volume";
 
+/**
+ * Read test timeout from TIMEOUT_MINUTES env var (set by GHA workflows).
+ * Falls back to `defaultMinutes` for local development.
+ */
+export function getTimeoutMs(defaultMinutes: number): number {
+  const envVal = process.env.TIMEOUT_MINUTES;
+  const minutes = envVal ? Number(envVal) : defaultMinutes;
+  return minutes * 60 * 1000;
+}
+
 const DOCKER_OPTIONS = (mem = "512m") => [
   "--network",
   "none",
@@ -24,6 +34,32 @@ const DOCKER_OPTIONS = (mem = "512m") => [
   "--stop-signal=SIGKILL",
   "--stop-timeout=5",
 ];
+
+export interface SourceConfig {
+  name: string;
+  image: string;
+  cmd: string;
+  memory: string;
+  user: string;
+}
+
+export function getSourceConfig(): SourceConfig {
+  const name = process.env.SOURCE_NAME;
+  const image = process.env.SOURCE_IMAGE;
+  const cmd = process.env.SOURCE_CMD;
+
+  if (!name || !image || !cmd) {
+    throw new Error("SOURCE_NAME, SOURCE_IMAGE, and SOURCE_CMD environment variables are required");
+  }
+
+  return {
+    name,
+    image,
+    cmd,
+    memory: process.env.SOURCE_MEMORY || "512m",
+    user: process.env.SOURCE_USER || "",
+  };
+}
 
 export interface TargetConfig {
   name: string;
@@ -110,6 +146,13 @@ async function waitForSocket(volumeName: string, maxWaitMs = 60_000): Promise<vo
   throw new Error(`Socket did not appear within ${maxWaitMs}ms`);
 }
 
+export function chmodSocket(volumeName: string) {
+  execSync(`docker run --rm --network none -v ${volumeName}:/shared alpine chmod 777 ${SOCKET_PATH}`, {
+    timeout: 10_000,
+    stdio: "pipe",
+  });
+}
+
 export async function startTarget({
   timeout,
   sharedVolume = SHARED_VOLUME,
@@ -178,6 +221,32 @@ export async function minifuzz({
     `${stopAfter}`,
     "--spec",
     "tiny",
+  ).terminateAfter(timeout - 10_000);
+}
+
+export async function fuzzSource({
+  sharedVolume = SHARED_VOLUME,
+  timeout,
+  config,
+}: {
+  sharedVolume?: string;
+  timeout: number;
+  config: SourceConfig;
+}) {
+  const cmdArgs = buildCmdArgs(config.cmd);
+  const userArgs = config.user ? ["--user", config.user] : [];
+
+  return ExternalProcess.spawn(
+    config.name,
+    "docker",
+    "run",
+    "--rm",
+    ...userArgs,
+    ...DOCKER_OPTIONS(config.memory),
+    "-v",
+    `${sharedVolume}:/shared`,
+    config.image,
+    ...cmdArgs,
   ).terminateAfter(timeout - 10_000);
 }
 

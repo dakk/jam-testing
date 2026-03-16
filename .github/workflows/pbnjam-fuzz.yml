@@ -1,16 +1,14 @@
-name: "Performance: pbnjam"
+name: "Fuzz: pbnjam"
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
   workflow_dispatch:
   pull_request:
     paths:
-      - '.github/workflows/pbnjam-performance.yml'
+      - '.github/workflows/pbnjam-fuzz.yml'
 
 jobs:
-  test:
-    uses: ./.github/workflows/reusable-picofuzz.yml
+  demo:
+    uses: ./.github/workflows/demo-source.yml
     with:
       target_name: pbnjam
       docker_image: 'shimonchick/pbnjam-fuzzer-target:latest'

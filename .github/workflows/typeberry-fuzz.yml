@@ -1,0 +1,31 @@
+name: "Fuzz: typeberry"
+
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  graymatter-source:
+    uses: ./.github/workflows/graymatter-fuzz-source.yml
+    with:
+      target_name: typeberry
+      docker_image: 'ghcr.io/fluffylabs/typeberry:latest'
+      docker_cmd: '--version=1 fuzz-target {TARGET_SOCK}'
+      docker_env: 'JAM_LOG=log'
+      readiness_pattern: 'PVM Backend'
+      timeout_minutes: 30
+      num_blocks: 10000
+      num_runs: 9
+      mention: tomusdrw
+
+  demo:
+    uses: ./.github/workflows/demo-source.yml
+    with:
+      target_name: typeberry
+      docker_image: 'ghcr.io/fluffylabs/typeberry:latest'
+      docker_cmd: '--version=1 fuzz-target {TARGET_SOCK}'
+      docker_env: 'JAM_LOG=log'
+      readiness_pattern: 'PVM Backend'
+      mention: tomusdrw

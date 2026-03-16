@@ -1,16 +1,14 @@
-name: "Performance: jamforge"
+name: "Fuzz: jamforge"
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
   workflow_dispatch:
   pull_request:
     paths:
-      - '.github/workflows/jamforge-performance.yml'
+      - '.github/workflows/jamforge-fuzz.yml'
 
 jobs:
-  test:
-    uses: ./.github/workflows/reusable-picofuzz.yml
+  demo:
+    uses: ./.github/workflows/demo-source.yml
     with:
       target_name: jamforge
       docker_image: 'ghcr.io/philoniare/jam-forge:latest'

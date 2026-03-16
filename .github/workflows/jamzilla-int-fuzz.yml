@@ -1,16 +1,14 @@
-name: "Performance: jamzilla-int"
+name: "Fuzz: jamzilla-int"
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
   workflow_dispatch:
   pull_request:
     paths:
-      - '.github/workflows/jamzilla-int-performance.yml'
+      - '.github/workflows/jamzilla-int-fuzz.yml'
 
 jobs:
-  test:
-    uses: ./.github/workflows/reusable-picofuzz.yml
+  demo:
+    uses: ./.github/workflows/demo-source.yml
     with:
       target_name: jamzilla-int
       docker_image: 'ghcr.io/ascrivener/jamzilla-tiny:edge'

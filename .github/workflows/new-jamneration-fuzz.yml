@@ -1,16 +1,14 @@
-name: "Performance: new-jamneration"
+name: "Fuzz: new-jamneration"
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
   workflow_dispatch:
   pull_request:
     paths:
-      - '.github/workflows/new-jamneration-performance.yml'
+      - '.github/workflows/new-jamneration-fuzz.yml'
 
 jobs:
-  test:
-    uses: ./.github/workflows/reusable-picofuzz.yml
+  demo:
+    uses: ./.github/workflows/demo-source.yml
     with:
       target_name: new-jamneration
       docker_image: 'ghcr.io/new-jamneration/new-jamneration-target:latest'
