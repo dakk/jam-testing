@@ -34,6 +34,45 @@ and the suite runs two stages against it:
 | jampy | [![Performance: jampy](https://github.com/FluffyLabs/jam-testing/actions/workflows/jampy-performance.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jampy-performance.yml) |
 | new-jamneration | [![Performance: new-jamneration](https://github.com/FluffyLabs/jam-testing/actions/workflows/new-jamneration-performance.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/new-jamneration-performance.yml) |
 
+## Fuzzing
+
+In addition to the deterministic minifuzz/picofuzz suites, the repo supports
+**fuzz testing** where one implementation (the "source") generates random blocks
+and another (the "target") must process them without crashing.
+
+Currently, [graymatter](https://github.com/jambrains/graymatter) is available as
+a fuzz source.
+
+### Demo fuzzing (free tier)
+
+Every team automatically gets a **demo fuzz** job that runs graymatter against
+their implementation with a limited number of blocks (5 000) on a shared demo
+runner. This is a basic sanity check — no setup required.
+
+| Team | Status |
+|------|--------|
+| typeberry | [![Fuzz: typeberry](https://github.com/FluffyLabs/jam-testing/actions/workflows/typeberry-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/typeberry-fuzz.yml) |
+| pyjamaz | [![Fuzz: pyjamaz](https://github.com/FluffyLabs/jam-testing/actions/workflows/pyjamaz-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/pyjamaz-fuzz.yml) |
+| boka | [![Fuzz: boka](https://github.com/FluffyLabs/jam-testing/actions/workflows/boka-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/boka-fuzz.yml) |
+| turbojam | [![Fuzz: turbojam](https://github.com/FluffyLabs/jam-testing/actions/workflows/turbojam-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/turbojam-fuzz.yml) |
+| graymatter | [![Fuzz: graymatter](https://github.com/FluffyLabs/jam-testing/actions/workflows/graymatter-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/graymatter-fuzz.yml) |
+| jam4s | [![Fuzz: jam4s](https://github.com/FluffyLabs/jam-testing/actions/workflows/jam4s-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jam4s-fuzz.yml) |
+| pbnjam | [![Fuzz: pbnjam](https://github.com/FluffyLabs/jam-testing/actions/workflows/pbnjam-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/pbnjam-fuzz.yml) |
+| javajam | [![Fuzz: javajam](https://github.com/FluffyLabs/jam-testing/actions/workflows/javajam-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/javajam-fuzz.yml) |
+| jamforge | [![Fuzz: jamforge](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamforge-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamforge-fuzz.yml) |
+| jotl | [![Fuzz: jotl](https://github.com/FluffyLabs/jam-testing/actions/workflows/jotl-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jotl-fuzz.yml) |
+| jamzilla | [![Fuzz: jamzilla](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamzilla-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamzilla-fuzz.yml) |
+| jamzilla-int | [![Fuzz: jamzilla-int](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamzilla-int-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jamzilla-int-fuzz.yml) |
+| jampy | [![Fuzz: jampy](https://github.com/FluffyLabs/jam-testing/actions/workflows/jampy-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/jampy-fuzz.yml) |
+| new-jamneration | [![Fuzz: new-jamneration](https://github.com/FluffyLabs/jam-testing/actions/workflows/new-jamneration-fuzz.yml/badge.svg)](https://github.com/FluffyLabs/jam-testing/actions/workflows/new-jamneration-fuzz.yml) |
+
+### Long-running fuzzing (dedicated)
+
+If your team wants extended fuzz runs (more blocks, multiple runs, dedicated
+runner), reach out by commenting on
+[issue #1](https://github.com/FluffyLabs/jam-testing/issues/1). We'll set up
+a dedicated fuzz workflow with a self-hosted runner labeled for your team.
+
 ## How it works
 
 1. A **reusable GitHub Actions workflow** pulls your Docker image, starts it
@@ -175,7 +214,10 @@ up-to-date.
 ```
 .github/workflows/
   reusable-picofuzz.yml       # Core reusable workflow (minifuzz + picofuzz)
-  <team>-performance.yml      # Per-team workflow files
+  demo-source.yml             # Reusable demo fuzz source workflow
+  graymatter-fuzz-source.yml  # Reusable long-running fuzz source workflow
+  <team>-performance.yml      # Per-team performance workflow files
+  <team>-fuzz.yml             # Per-team fuzz workflow files
 minifuzz/                     # Minifuzz Docker image (Python fuzz example runner)
 minifuzz-traces/              # Captured request-response pairs from typeberry
   populate.sh                 # Script to regenerate traces
@@ -190,6 +232,9 @@ tests/
   picofuzz/
     common.ts                 # Picofuzz test harness
     *.test.ts                 # Per-suite test files
+  fuzz-source/
+    common.ts                 # Fuzz source test harness
+    fuzz.test.ts              # Fuzz source test entry point
 teams/<team>/                 # Team-specific scripts & data
 picofuzz-stf-data/            # Git submodule: STF test traces
 picofuzz-conformance-data/    # Git submodule: jam-conformance (minifuzz examples)
