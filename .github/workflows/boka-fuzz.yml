@@ -13,3 +13,4 @@ jobs:
       target_name: boka
       docker_image: 'acala/boka:latest'
       docker_cmd: 'fuzz target --socket-path {TARGET_SOCK}'
+      mention: xlc

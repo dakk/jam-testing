@@ -15,3 +15,4 @@ jobs:
       docker_cmd: '--fuzz --seed 0 --socket {TARGET_SOCK}'
       docker_env: 'CONFIG_FILE=app/config/node-dev.conf'
       docker_memory: '4096m'
+      mention: celadari

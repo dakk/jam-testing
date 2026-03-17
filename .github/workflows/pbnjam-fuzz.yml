@@ -13,3 +13,4 @@ jobs:
       target_name: pbnjam
       docker_image: 'shimonchick/pbnjam-fuzzer-target:latest'
       docker_cmd: '--socket {TARGET_SOCK}'
+      mention: mikirov

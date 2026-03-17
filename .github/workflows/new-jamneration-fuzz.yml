@@ -14,3 +14,4 @@ jobs:
       docker_image: 'ghcr.io/new-jamneration/new-jamneration-target:latest'
       docker_cmd: '{TARGET_SOCK}'
       docker_env: 'USE_MINI_REDIS=true'
+      mention: YCC3741

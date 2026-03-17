@@ -13,3 +13,4 @@ jobs:
       target_name: graymatter
       docker_image: 'ghcr.io/jambrains/graymatter/gm:conformance-fuzzer-latest'
       docker_cmd: 'fuzz-m1-target --stay-open --listen {TARGET_SOCK}'
+      mention: franciscoaguirre

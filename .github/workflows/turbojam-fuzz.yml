@@ -13,3 +13,4 @@ jobs:
       target_name: turbojam
       docker_image: 'r2rationality/turbojam-fuzz:latest'
       docker_cmd: 'fuzzer-api {TARGET_SOCK}'
+      mention: sierkov
