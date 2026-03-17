@@ -91,15 +91,6 @@ a dedicated fuzz workflow with a self-hosted runner labeled for your team.
 5. Tests run on a self-hosted runner. Timing results (CSV with per-trace
    percentiles) are uploaded as artifacts and displayed on the dashboard.
 
-### Picofuzz suites
-
-| Suite | Description |
-|---|---|
-| `fallback` | Fallback STF traces |
-| `safrole` | Safrole STF traces |
-| `storage` | Storage STF traces |
-| `storage_light` | Lightweight storage traces |
-
 ### Readiness detection
 
 The suite needs to know when your implementation is ready to accept
@@ -239,7 +230,3 @@ teams/<team>/                 # Team-specific scripts & data
 picofuzz-stf-data/            # Git submodule: STF test traces
 picofuzz-conformance-data/    # Git submodule: jam-conformance (minifuzz examples)
 ```
-
-## License
-
-MPL-2.0
