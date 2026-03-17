@@ -1,9 +1,9 @@
 # jam-testing
 
-Smoke testing and performance measurement suite for JAM implementations.
-Each team provides a Docker image that speaks the
+Smoke testing, performance measurement, and fuzz testing suite for JAM
+implementations. Each team provides a Docker image that speaks the
 [JAM Fuzz protocol](https://github.com/davxy/jam-conformance/tree/main/fuzz-proto),
-and the suite runs two stages against it:
+and the suite runs three stages against it:
 
 - **[Minifuzz](./minifuzz/)** — runs the bare-minimum `forks`/`no_forks`
   protocol examples first, then replays STF-based traces for `fallback`,
@@ -14,14 +14,16 @@ and the suite runs two stages against it:
   `safrole`, `storage`, `storage_light`) but does not check responses. Its
   only purpose is to measure block import performance (timings are displayed
   on the [dashboard](#dashboard)).
+- **Fuzz testing** — one implementation (the "source") generates random
+  blocks and another (the "target") must process them without crashing.
+  Currently [graymatter](https://github.com/jambrains/graymatter) is
+  available as a fuzz source. Every team gets a demo fuzz job (5 000 blocks
+  on a shared runner); dedicated long-running runs are available on request.
 
 ## Status
 
 The **Performance** column covers minifuzz (conformance gate) + picofuzz
-(timing). The **Fuzz** column covers demo fuzz testing where
-[graymatter](https://github.com/jambrains/graymatter) generates random blocks
-and the target must process them without crashing (5 000 blocks on a shared
-runner — no setup required).
+(timing). The **Fuzz** column covers demo fuzz runs.
 
 | Team | Performance | Fuzz |
 |------|-------------|------|
