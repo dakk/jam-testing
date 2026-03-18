@@ -60,8 +60,9 @@ Add a row to the badge table in `README.md` (under "## Minifuzz + Performance"):
 
 ### 3. Team directory
 
-Create an empty `teams/<team>/` directory. No README or other files needed
-(no existing team has one).
+Create `teams/<team>/.gitkeep` (an empty file so Git tracks the directory).
+This is **required** — the dashboard discovers teams by listing `teams/*/`
+and will silently skip any team without a folder.
 
 ### 4. Dashboard deploy workflow trigger
 
@@ -123,7 +124,7 @@ special repository access.
 
 - [ ] Workflow file follows the exact pattern of existing ones
 - [ ] Badge row added to `README.md`
-- [ ] `teams/<team>/` directory created (can be empty)
+- [ ] `teams/<team>/.gitkeep` created (dashboard won't show the team without it)
 - [ ] Workflow name matches `"Performance: <team>"`
 - [ ] `deploy-dashboard.yml` updated: `workflow_run.workflows` trigger list
 - [ ] Docker image is publicly pullable

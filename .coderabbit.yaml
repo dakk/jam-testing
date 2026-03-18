@@ -23,7 +23,10 @@ reviews:
         7. The Docker image reference looks like a public registry path (e.g. ghcr.io).
         8. The `docker_cmd` contains the `{TARGET_SOCK}` placeholder.
         9. No extra jobs or steps are added beyond `uses: ./.github/workflows/reusable-picofuzz.yml`.
-        10. The Docker image must be publicly accessible (no authentication required).
+        10. A corresponding `teams/<team>/` directory with a `.gitkeep` file MUST exist
+            in the same PR. Without it the dashboard will silently skip this team's data.
+            If the directory is missing, request changes.
+        11. The Docker image must be publicly accessible (no authentication required).
             Check that the image reference points to a public ghcr.io or Docker Hub
             repository. If the image is under a private org or user namespace, flag it
             as a potential issue — the workflow will fail with "unauthorized" at runtime
@@ -70,7 +73,11 @@ reviews:
       instructions: |
         Team directories should be simple. For new teams, verify that:
         1. The directory name matches the `target_name` in the workflow file.
-        2. No executable scripts or Docker-related files are added that could
+        2. The directory contains at least a `.gitkeep` file.
+        3. A matching `<team>-performance.yml` workflow file exists in
+           `.github/workflows/`. If the workflow is missing, the team folder
+           alone has no effect — flag this.
+        4. No executable scripts or Docker-related files are added that could
            bypass the standard test pipeline.
 
     # --- README badge table ---
